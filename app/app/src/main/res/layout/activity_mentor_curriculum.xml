@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#FFF8FF">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="24dp">
+
+        <!-- 상단 프로필 카드 -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardProfile"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/tvMentorName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="홍길동 멘토"
+                    android:textColor="@android:color/black"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/tvMentorField"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="전문 분야: IT, 건강"
+                    android:textColor="@android:color/black"
+                    android:layout_marginTop="4dp" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- 자격증 목록 제목 -->
+        <TextView
+            android:id="@+id/tvCertTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="자격증 목록"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@id/cardProfile"
+            app:layout_constraintLeft_toLeftOf="parent" />
+
+        <!-- 자격증 업로드 영역 (단순 박스) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardUploadArea"
+            android:layout_width="0dp"
+            android:layout_height="120dp"
+            android:layout_marginTop="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:layout_constraintTop_toBottomOf="@id/tvCertTitle"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvUploadGuide"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="아직 등록된 자격증이 없습니다"
+                    android:textColor="@android:color/darker_gray" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- 파일 선택 버튼 -->
+        <Button
+            android:id="@+id/btnUploadCertificate"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:text="자격증 파일 선택"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="@color/purple_500"
+            android:textColor="@android:color/white"
+            app:layout_constraintTop_toBottomOf="@id/cardUploadArea"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent" />
+
+        <!-- 자격증 등록 버튼 -->
+        <Button
+            android:id="@+id/btnRegisterCertificate"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:text="자격증 등록"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="@android:color/white"
+            android:textColor="@color/purple_500"
+            app:layout_constraintTop_toBottomOf="@id/btnUploadCertificate"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent" />
+
+        <!-- AI 커리큘럼 생성 버튼 -->
+        <Button
+            android:id="@+id/btnGenerateAiCurriculum"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:text="AI 커리큘럼 생성"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="@color/purple_500"
+            android:textColor="@android:color/white"
+            app:layout_constraintTop_toBottomOf="@id/btnRegisterCertificate"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
