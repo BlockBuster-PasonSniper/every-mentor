@@ -1,0 +1,18 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: mentor-db
+    restart: always
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "root"
+      MYSQL_DATABASE: "mentor_db"
+      MYSQL_USER: "user"
+      MYSQL_PASSWORD: "user1234"
+      TZ: Asia/Seoul
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - ./db_data:/var/lib/mysql
