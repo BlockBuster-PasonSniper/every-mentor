@@ -22,7 +22,31 @@ uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ## 지원하는 주요 엔드포인트
 
 - `POST /career/curriculum/text`
-  - 건강보험 자격득실 이미지와 자격증 이미지를 받아 OCR → 모듈형 커리큘럼(주차/단계 제목 없음)과 재직 이력을 기반으로 추정한 대표 강점 기술을 반환합니다.
+  - 기본값은 `result_type=subjects`이며 "자격증 - 과목, 과목" 형태로 과목만 반환합니다.
+  - 커리큘럼이 필요하면 `result_type=curriculum`을 주세요.
+  - 현재 서버에 등록된 자격증 과목표를 전부 보고 싶으면 `result_type=subjects_all`을 주세요.
+  - OCR에서 자격증명이 더 잡히는지 확인하려면 `result_type=subjects_detected`를 주세요(과목표 미등록 자격증은 "(과목표 미등록)"으로 표시).
+
+## 자격증 과목 자동화(오타 보정/미등록 처리)
+
+- OCR 오타/띄어쓰기/줄바꿈을 완화하기 위해, 서버가 자격증명을 퍼지 매칭으로 보정합니다(`rapidfuzz` 사용).
+- 과목표에 없는 자격증은 기본적으로 `(...미등록)`으로 표시됩니다.
+- 미등록 자격증도 과목을 “추정”해서 뽑고 싶으면 LM Studio 폴백을 켤 수 있습니다.
+  - `LM_STUDIO_SUBJECTS_FALLBACK=1`
+  - `LM_STUDIO_SUBJECTS_FALLBACK_MAX=8`
+
+## subjects 출력 포맷
+
+- `result_type=subjects*` 계열 응답은 아래 포맷으로 반환됩니다.
+
+```text
+기업명
+<보험 OCR에서 추출한 기업명(없으면 '(기업명 미확인)')>
+#####
+자격증-과목
+전기기능사 - 전기이론, 전기기기, 전기설비
+...
+```
 
 ## 사용 방법
 
@@ -49,10 +73,19 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8000/career/curriculum/tex
 
 ## LM Studio & Tesseract 설정
 
-- LM Studio(OpenAI 호환 서버)가 `http://127.0.0.1:1234`에서 동작해야 합니다.
-- 기본 모델은 `qwen2.5-vl-7b-instruct`로 설정되어 있습니다.
+- LM Studio(OpenAI 호환 서버) 주소는 환경변수 `LM_STUDIO_BASE_URL`로 지정합니다.
+  - 기본값: `http://127.0.0.1:1234`
+  - 예: 포트포워딩한 서버를 쓰는 경우 `http://<PUBLIC_IP>:<PORT>`
+- 기본 모델은 `LM_STUDIO_MODEL=qwen2.5-vl-7b-instruct`로 설정되어 있습니다.
+- OCR 텍스트가 길거나 모델이 느리면 `/v1/chat/completions` 응답이 오래 걸릴 수 있습니다.
+  - 이 경우 `LM_STUDIO_TIMEOUT_READ`(초)를 늘려보세요. 예: `LM_STUDIO_TIMEOUT_READ=1200`
 - Tesseract OCR이 설치되어 있어야 하며, PATH에 없으면 `TESSERACT_CMD` 환경변수로 경로를 지정하세요.
 
 ```powershell
 $env:TESSERACT_CMD = "C:\Program Files\Tesseract-OCR\tesseract.exe"
 ```
+
+### .env 사용(권장)
+
+- [.env.example](.env.example)을 [.env](.env)로 복사해서 값만 채우세요.
+- `.env`는 [../.gitignore](../.gitignore)에 의해 커밋되지 않습니다.
