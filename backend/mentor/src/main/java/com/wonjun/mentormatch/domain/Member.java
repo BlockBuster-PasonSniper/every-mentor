@@ -1,9 +1,13 @@
 package com.wonjun.mentormatch.domain;
 
+import com.wonjun.mentormatch.domain.member.Certification;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity // 이 클래스가 DB 테이블이 된다는 뜻
 @Getter @Setter
@@ -24,7 +28,11 @@ public class Member {
 
     // 멘토인지 멘티인지 구분 (MENTOR, MENTEE)
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "varchar(255)")
     private Role role;
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Certification> certifications = new ArrayList<>();
 
     // 생성자 편의 메서드 (선택 사항)
     public Member(String email, String name, String password, Role role) {
