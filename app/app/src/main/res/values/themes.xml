@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="Theme.EveryMentor" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- 앱 기본 테마 -->
+    <style name="Theme.EveryMentor" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorAccent">@color/purple_200</item>
+    </style>
+
+    <!-- 스플래시 쓸 거면 -->
+    <style name="Theme.EveryMentor.Splash" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
 </resources>
+
