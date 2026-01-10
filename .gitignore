@@ -1,0 +1,93 @@
+# =========================
+# Root .gitignore (monorepo)
+# Android (app/), Python (ai/), backend 등 공통으로 적용
+# =========================
+
+# --- OS / Editor ---
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# --- IntelliJ / Android Studio ---
+.idea/
+*.iml
+
+# --- Gradle ---
+.gradle/
+**/.gradle/
+build/
+**/build/
+**/.kotlin/
+**/local.properties
+
+# --- Android artifacts ---
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+*.log
+**/captures/
+**/.externalNativeBuild/
+**/.cxx/
+*.hprof
+
+# --- Keystore / signing (보안) ---
+*.jks
+*.keystore
+*.p12
+*.pem
+*.key
+
+# --- Google services / secrets (필요하면 팀에서 포함 여부 합의) ---
+google-services.json
+*.properties.user
+*.secrets.*
+.env
+.env.*
+.envrc
+
+# --- Kotlin / Java ---
+out/
+**/out/
+
+# --- Python ---
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual env
+.venv/
+venv/
+env/
+.python-version
+
+# Python tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Packaging
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# --- Node / JS (backend에 Node 쓰는 경우 대비) ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.next/
+.nuxt/
+dist/
+coverage/
+
+# --- Misc ---
+*.tmp
+*.bak

@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "EveryMentor"
 include(":app")
+//include(":feature:mentee")

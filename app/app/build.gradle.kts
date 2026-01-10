@@ -42,6 +42,14 @@ android {
 }
 
 dependencies {
+    implementation(platform("androidx.compose:compose-bom:2025.12.01"))
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.activity:activity-compose:1.12.2")
+    implementation("androidx.navigation:navigation-compose:2.9.6")
+    implementation("androidx.datastore:datastore-preferences:1.2.0")
+    //implementation(project(":feature:mentee"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
