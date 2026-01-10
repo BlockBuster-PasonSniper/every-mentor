@@ -45,6 +45,19 @@ if load_dotenv is not None:
 LM_STUDIO_BASE_URL = os.getenv("LM_STUDIO_BASE_URL", "http://127.0.0.1:1234")
 LM_STUDIO_MODEL = os.getenv("LM_STUDIO_MODEL", "qwen2.5-vl-7b-instruct")
 
+# LLM provider selection
+# - auto: use Anthropic when ANTHROPIC_API_KEY is set, else fallback to LM Studio
+# - anthropic: force Claude
+# - lmstudio: force LM Studio
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "auto").strip().lower()
+
+ANTHROPIC_API_KEY = (os.getenv("ANTHROPIC_API_KEY") or "").strip() or None
+# NOTE: Model availability varies by Anthropic account. If you get 404 model-not-found,
+# set ANTHROPIC_MODEL in ai/.env to a model your key has access to.
+ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-latest")
+ANTHROPIC_BASE_URL = os.getenv("ANTHROPIC_BASE_URL", "https://api.anthropic.com")
+ANTHROPIC_VERSION = os.getenv("ANTHROPIC_VERSION", "2023-06-01")
+
 
 def _env_float(name: str, default: float) -> float:
     raw = os.getenv(name)
@@ -466,13 +479,12 @@ async def _infer_subjects_with_lmstudio(cert_name: str) -> str:
         pool=LM_STUDIO_TIMEOUT_POOL,
     )
 
-    data = await _lmstudio_chat_completions(
-        messages=[{"role": "user", "content": prompt}],
+    text = await _llm_generate_text(
+        prompt=prompt,
         temperature=0.0,
         max_tokens=128,
         timeout=timeout,
     )
-    text = _extract_chat_text(data)
     # Basic sanitization: keep first line only
     line = (text.splitlines()[0] if text else "").strip()
     if not line:
@@ -727,6 +739,119 @@ def _extract_chat_text(data: dict[str, Any]) -> str:
         .get("content", "")
         .strip()
     )
+
+
+def _extract_anthropic_text(data: dict[str, Any]) -> str:
+    # Anthropic Messages API returns: { content: [ {type: 'text', text: '...'}, ... ] }
+    parts: list[str] = []
+    for item in (data.get("content") or []):
+        if isinstance(item, dict) and item.get("type") == "text":
+            txt = (item.get("text") or "").strip()
+            if txt:
+                parts.append(txt)
+    return "\n".join(parts).strip()
+
+
+def _selected_llm_provider() -> str:
+    p = (LLM_PROVIDER or "auto").strip().lower()
+    if p in {"anthropic", "claude"}:
+        return "anthropic"
+    if p in {"lmstudio", "lm", "openai"}:
+        return "lmstudio"
+    # auto
+    if ANTHROPIC_API_KEY:
+        return "anthropic"
+    return "lmstudio"
+
+
+async def _anthropic_messages(
+    *,
+    prompt: str,
+    temperature: float,
+    max_tokens: int,
+    timeout: httpx.Timeout,
+) -> dict[str, Any]:
+    if not ANTHROPIC_API_KEY:
+        raise HTTPException(
+            status_code=500,
+            detail="ANTHROPIC_API_KEY가 설정되지 않았습니다. .env에 ANTHROPIC_API_KEY를 추가하세요.",
+        )
+
+    url = f"{ANTHROPIC_BASE_URL.rstrip('/')}/v1/messages"
+    payload: dict[str, Any] = {
+        "model": ANTHROPIC_MODEL,
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+        "messages": [
+            {"role": "user", "content": prompt},
+        ],
+    }
+    headers = {
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": ANTHROPIC_VERSION,
+        "content-type": "application/json",
+    }
+
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        try:
+            resp = await client.post(url, json=payload, headers=headers)
+            resp.raise_for_status()
+            return resp.json()
+        except httpx.TimeoutException as e:
+            raise HTTPException(
+                status_code=504,
+                detail=(
+                    "Claude(Anthropic) 응답이 시간 초과되었습니다. "
+                    "(네트워크/모델 처리 지연) LM_STUDIO_TIMEOUT_READ 값을 늘려보세요."
+                ),
+            ) from e
+        except httpx.HTTPStatusError as e:
+            body = (e.response.text or "").strip()
+            body = body[:2000] if body else ""
+            if e.response.status_code == 404:
+                raise HTTPException(
+                    status_code=502,
+                    detail=(
+                        "Claude(Anthropic) 모델을 찾을 수 없습니다. "
+                        "ai/.env의 ANTHROPIC_MODEL 값을 현재 계정에서 사용 가능한 모델로 바꿔주세요. "
+                        f"(현재: {ANTHROPIC_MODEL}) {body}"
+                    ),
+                ) from e
+            raise HTTPException(
+                status_code=502,
+                detail=f"Claude(Anthropic) 오류 응답: HTTP {e.response.status_code} {body}",
+            ) from e
+        except httpx.RequestError as e:
+            raise HTTPException(
+                status_code=502,
+                detail=f"Claude(Anthropic) 연결 오류: {type(e).__name__}",
+            ) from e
+
+
+async def _llm_generate_text(
+    *,
+    prompt: str,
+    temperature: float,
+    max_tokens: int,
+    timeout: httpx.Timeout,
+) -> str:
+    provider = _selected_llm_provider()
+    if provider == "anthropic":
+        data = await _anthropic_messages(
+            prompt=prompt,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            timeout=timeout,
+        )
+        return _extract_anthropic_text(data)
+
+    data = await _lmstudio_chat_completions(
+        messages=[{"role": "user", "content": prompt}],
+        temperature=temperature,
+        max_tokens=max_tokens,
+        timeout=timeout,
+    )
+    return _extract_chat_text(data)
 
 
 def _build_career_curriculum_prompt(
@@ -990,14 +1115,12 @@ async def _generate_career_curriculum(
         write=LM_STUDIO_TIMEOUT_WRITE,
         pool=LM_STUDIO_TIMEOUT_POOL,
     )
-    cur_data = await _lmstudio_chat_completions(
-        messages=[{"role": "user", "content": prompt}],
+    return await _llm_generate_text(
+        prompt=prompt,
         temperature=0.2,
         max_tokens=1200,
         timeout=timeout,
     )
-
-    return _extract_chat_text(cur_data)
 
 
 @app.post("/career/curriculum/text", tags=["career"], response_class=PlainTextResponse)

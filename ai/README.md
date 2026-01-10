@@ -5,7 +5,7 @@
 PowerShell에서 아래 순서대로 실행하세요.
 
 ```powershell
-cd "c:\Users\dhrwn\OneDrive\문서\every-mentor\ai"
+cd "c:\Users\okjunseo\Documents\every-mentor\ai"
 python -m venv .venv
 \.venv\Scripts\Activate.ps1
 python -m pip install -U pip
@@ -71,7 +71,18 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8000/career/curriculum/tex
 
 > 건강보험 문서에 `직장피부양자`/`피부양자`가 포함되면, 해당 회사명이 가족의 사업장일 가능성이 높으므로 커리큘럼에 참고용으로만 활용됩니다.
 
-## LM Studio & Tesseract 설정
+## LLM 설정 (Claude/LM Studio)
+
+- 기본 동작: `ai/.env`에 `ANTHROPIC_API_KEY`가 설정되어 있으면 Claude를 사용하고, 없으면 LM Studio를 사용합니다.
+- 강제로 지정하려면 `LLM_PROVIDER`를 사용합니다.
+  - `LLM_PROVIDER=auto` (권장)
+  - `LLM_PROVIDER=anthropic` (Claude 강제)
+  - `LLM_PROVIDER=lmstudio` (LM Studio 강제)
+- 모델은 `ANTHROPIC_MODEL`로 바꿀 수 있습니다.
+  - 모델 ID는 계정/키에 따라 달라질 수 있으니, 필요하면 `GET https://api.anthropic.com/v1/models`로 목록을 확인한 뒤 그 중 하나를 넣으세요.
+  - 예: `ANTHROPIC_MODEL=claude-sonnet-4-5-20250929`
+
+주의: API 키는 반드시 `ai/.env`에만 넣고, 코드/채팅/로그에는 절대 넣지 마세요. `.env`는 gitignore로 커밋되지 않습니다.
 
 - LM Studio(OpenAI 호환 서버) 주소는 환경변수 `LM_STUDIO_BASE_URL`로 지정합니다.
   - 기본값: `http://127.0.0.1:1234`
@@ -79,6 +90,9 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8000/career/curriculum/tex
 - 기본 모델은 `LM_STUDIO_MODEL=qwen2.5-vl-7b-instruct`로 설정되어 있습니다.
 - OCR 텍스트가 길거나 모델이 느리면 `/v1/chat/completions` 응답이 오래 걸릴 수 있습니다.
   - 이 경우 `LM_STUDIO_TIMEOUT_READ`(초)를 늘려보세요. 예: `LM_STUDIO_TIMEOUT_READ=1200`
+
+## Tesseract 설정
+
 - Tesseract OCR이 설치되어 있어야 하며, PATH에 없으면 `TESSERACT_CMD` 환경변수로 경로를 지정하세요.
 
 ```powershell
@@ -87,5 +101,5 @@ $env:TESSERACT_CMD = "C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 ### .env 사용(권장)
 
-- [.env.example](.env.example)을 [.env](.env)로 복사해서 값만 채우세요.
+- `ai/.env` 파일을 만들고 필요한 환경변수만 채우세요.
 - `.env`는 [../.gitignore](../.gitignore)에 의해 커밋되지 않습니다.
